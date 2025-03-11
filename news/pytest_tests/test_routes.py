@@ -10,7 +10,7 @@ from pytest_lazy_fixtures import lf
     lf('detail_url'),
     lf('login_url'),
     lf('signup_url'),
-    #lf('logout_url'),
+    lf('logout_url'),
 ])
 def test_pages_availability(client, url_fixture):
     """Доступность страниц"""
