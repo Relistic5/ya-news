@@ -1,9 +1,12 @@
+from datetime import timedelta
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
+from django.utils import timezone
 
 from news.models import News, Comment
-
+from yanews import settings
 
 User = get_user_model()
 
@@ -22,12 +25,13 @@ def detail_url(news):
 
 @pytest.fixture
 def login_url():
-    """Вход в уч.запись"""
+    """Страница входа в уч.запись"""
     return reverse_lazy('users:login')
+
 
 @pytest.fixture
 def login_out():
-    """Выход из уч.записи"""
+    """Страница выхода из уч.записи"""
     return reverse_lazy('users:logout')
 
 
@@ -50,22 +54,28 @@ def delete_url(comment):
 
 
 @pytest.fixture
-def author(db):
+def author():
     """Создаем автора"""
     return User.objects.create(username='Автор')
 
 
 @pytest.fixture
-def reader(db):
+def reader():
     """Создаем читателя"""
     return User.objects.create(username='Читатель')
 
 
 @pytest.fixture
-def news(db):
+def news():
     """Создаем новость"""
     return News.objects.create(
-        title="Заголовок", text="Текст новости")
+        title="Новость", text="Текст новости")
+
+
+@pytest.fixture
+def anonymous_comment(news):
+    """Создаем комментарий"""
+    return {'text': 'Какой-то комментарий'}
 
 
 @pytest.fixture
@@ -73,3 +83,38 @@ def comment(author, news):
     """Создаем комментарий Автора"""
     return Comment.objects.create(
         text='Комментарий Автора', author=author, news=news)
+
+
+@pytest.fixture
+def edit_comment_data():
+    """Редактируем комментарий Автора"""
+    return {'text': 'Обновлённый комментарий Автора'}
+
+
+@pytest.fixture
+def create_news():
+    """Создаем несколько новостей с разными датами"""
+    now = timezone.now()
+    news_list = [
+        News(title=f'Новость {index}',
+             text='Текст новости.',
+             date=now - timedelta(days=index))
+        for index in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1)
+    ]
+    News.objects.bulk_create(news_list)
+
+
+@pytest.fixture
+def create_news_and_comments(author, news):
+    """Создаем новость и комментарии к ней"""
+    now = timezone.now()
+    news_item = news
+    comment_list = [
+        Comment(news=news_item,
+                author=author,
+                text=f'Комментарий {index}',
+                created=now - timedelta(minutes=index))
+        for index in range(5)
+    ]
+    Comment.objects.bulk_create(comment_list)
+    return news_item
