@@ -1,14 +1,12 @@
 from datetime import timedelta
 
 import pytest
-from django.contrib.auth import get_user_model
+from django.test.client import Client
 from django.urls import reverse_lazy
 from django.utils import timezone
 
 from news.models import News, Comment
 from yanews import settings
-
-User = get_user_model()
 
 
 @pytest.fixture
@@ -30,7 +28,7 @@ def login_url():
 
 
 @pytest.fixture
-def login_out():
+def logout_url():
     """Страница выхода из уч.записи"""
     return reverse_lazy('users:logout')
 
@@ -54,15 +52,31 @@ def delete_url(comment):
 
 
 @pytest.fixture
-def author():
+def author(django_user_model):
     """Создаем автора"""
-    return User.objects.create(username='Автор')
+    return django_user_model.objects.create(username='Автор')
 
 
 @pytest.fixture
-def reader():
+def reader(django_user_model):
     """Создаем читателя"""
-    return User.objects.create(username='Читатель')
+    return django_user_model.objects.create(username='Читатель')
+
+
+@pytest.fixture
+def author_client(author):
+    """Создаем клиент и логиним автора"""
+    client = Client()
+    client.force_login(author)
+    return client
+
+
+@pytest.fixture
+def reader_client(reader):
+    """Создаем клиент и логиним читателя"""
+    client = Client()
+    client.force_login(reader)
+    return client
 
 
 @pytest.fixture
@@ -73,22 +87,10 @@ def news():
 
 
 @pytest.fixture
-def anonymous_comment(news):
-    """Создаем комментарий"""
-    return {'text': 'Какой-то комментарий'}
-
-
-@pytest.fixture
 def comment(author, news):
-    """Создаем комментарий Автора"""
+    """Создаем комментарий к новости"""
     return Comment.objects.create(
-        text='Комментарий Автора', author=author, news=news)
-
-
-@pytest.fixture
-def edit_comment_data():
-    """Редактируем комментарий Автора"""
-    return {'text': 'Обновлённый комментарий Автора'}
+        text='Тестовый комментарий', author=author, news=news)
 
 
 @pytest.fixture
@@ -117,4 +119,3 @@ def create_news_and_comments(author, news):
         for index in range(5)
     ]
     Comment.objects.bulk_create(comment_list)
-    return news_item

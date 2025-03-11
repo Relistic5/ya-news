@@ -33,8 +33,7 @@ def test_user_comment_posting(
     ('reader', HTTPStatus.NOT_FOUND),
 ])
 def test_user_comment_editing(
-        client, edit_url, edit_comment_data, comment,
-        author, reader, user, expected_status):
+        client, edit_url, comment, author, reader, user, expected_status):
     """Доступ к редактированию комментариев
     в зависимости от роли пользователя
     """
@@ -43,12 +42,12 @@ def test_user_comment_editing(
     elif user == 'reader':
         client.force_login(reader)
 
-    response = client.post(edit_url, edit_comment_data)
+    response = client.post(edit_url, comment)
     assert response.status_code == expected_status
 
     if user == 'author':
         comment.refresh_from_db()
-        assert comment.text == edit_comment_data['text']
+        assert comment.text == comment['text']
     else:
         comment.refresh_from_db()
         assert comment.text == 'Комментарий Автора'

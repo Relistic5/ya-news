@@ -21,10 +21,9 @@ def test_home_page_news_sorted(client, create_news, home_url):
 
 
 @pytest.mark.django_db
-def test_news_comments_sorted(client, create_news_and_comments, comment):
+def test_news_comments_sorted(client, create_news_and_comments, comment, detail_url):
     """Сортировка комментариев - от старых к новым"""
-    news_item = create_news_and_comments
-    response = client.get(f'/news/{news_item.id}/')
+    response = client.get(detail_url)
     comments = response.context['object'].comment_set.all().order_by('created')
     creation_dates = [comment.created for comment in comments]
     assert creation_dates == sorted(creation_dates)
