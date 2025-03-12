@@ -11,7 +11,6 @@ from pytest_lazy_fixtures import lf
     lf('detail_url'),
     lf('login_url'),
     lf('signup_url'),
-    lf('logout_url'),
 ))
 def test_pages_availability(client, url_fixture):
     """Доступность страниц"""
@@ -34,17 +33,16 @@ def test_redirect_for_anonymous_client(client, request,
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize('url_fixture', ('edit_url', 'delete_url'))
 @pytest.mark.parametrize('client_fixture, expected_status', [
     ('author_client', HTTPStatus.OK),
     ('reader_client', HTTPStatus.NOT_FOUND)
 ])
-@pytest.mark.parametrize('action', ('edit', 'delete'))
-def test_comment_permissions(request, client_fixture, expected_status,
-                             comment, edit_url, delete_url, action):
+def test_comment_permissions(request, client_fixture, expected_status, url_fixture):
     """Доступ к редактированию и удалению комментариев
     в зависимости от роли пользователя
     """
     client = request.getfixturevalue(client_fixture)
-    url = edit_url if action == 'edit' else delete_url
+    url = request.getfixturevalue(url_fixture)
     response = client.get(url)
     assert response.status_code == expected_status
