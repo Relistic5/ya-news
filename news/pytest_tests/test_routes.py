@@ -34,21 +34,17 @@ def test_redirect_for_anonymous_client(client, request,
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize('user_role, expected_status', [
-    ('author', HTTPStatus.OK),
-    ('reader', HTTPStatus.NOT_FOUND)
+@pytest.mark.parametrize('client_fixture, expected_status', [
+    ('author_client', HTTPStatus.OK),
+    ('reader_client', HTTPStatus.NOT_FOUND)
 ])
 @pytest.mark.parametrize('action', ('edit', 'delete'))
-def test_comment_permissions(client, user_role, expected_status, author,
-                             reader, comment, edit_url, delete_url, action):
+def test_comment_permissions(request, client_fixture, expected_status,
+                             comment, edit_url, delete_url, action):
     """Доступ к редактированию и удалению комментариев
     в зависимости от роли пользователя
     """
-    if user_role == 'author':
-        client.force_login(author)
-    elif user_role == 'reader':
-        client.force_login(reader)
-
+    client = request.getfixturevalue(client_fixture)
     url = edit_url if action == 'edit' else delete_url
     response = client.get(url)
     assert response.status_code == expected_status
