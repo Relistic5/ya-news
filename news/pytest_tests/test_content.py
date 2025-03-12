@@ -44,8 +44,7 @@ def test_comment_form_access(
     """Наличие формы комментариев на странице новости
     в зависимости от роли пользователя
     """
-    client = client_fixture
-    response = client.get(detail_url)
+    response = client_fixture.get(detail_url)
     assert ('form' in response.context) == expected_form
     if expected_form:
         assert isinstance(response.context['form'], CommentForm)

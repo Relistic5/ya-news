@@ -17,7 +17,7 @@ def test_anonymous_comment_posting(
 
 @pytest.mark.django_db
 def test_author_comment_posting(
-        author_client, detail_url, comment_form):
+        author_client, detail_url, comment_form, news, author):
     """Залогиненный пользователь может комментировать"""
     response = author_client.post(detail_url, comment_form)
     assert response.status_code == HTTPStatus.FOUND
@@ -25,32 +25,30 @@ def test_author_comment_posting(
 
     created_comment = Comment.objects.last()
     assert created_comment.text == comment_form['text']
-    assert created_comment.author == comment_form['author']
-    assert created_comment.news == comment_form['news']
+    assert created_comment.author == author
+    assert created_comment.news == news
 
 
 @pytest.mark.django_db
 def test_author_can_edit_own_comment(
-        author_client, comment, edit_url):
+        author_client, comment_form, edit_url, comment):
     """Автор может редактировать собственный комментарий"""
-    form_data = {'text': comment.text + ' (обновлено)'}
-    response = author_client.post(edit_url, data=form_data)
+    response = author_client.post(edit_url, data=comment_form)
     assert response.status_code == HTTPStatus.FOUND
 
-    updated_comment = Comment.objects.get()
-    assert updated_comment.text == form_data['text']
+    comment.refresh_from_db()
+    assert comment.text == comment_form['text']
 
 
 @pytest.mark.django_db
 def test_reader_cannot_edit_another_users_comment(
-        reader_client, comment, edit_url):
+        reader_client, comment_form, edit_url, comment):
     """Читатель не может редактировать комментарий автора"""
-    form_data = {'text': comment.text + ' (обновлено)'}
-    response = reader_client.post(edit_url, data=form_data)
+    response = reader_client.post(edit_url, data=comment_form)
     assert response.status_code == HTTPStatus.NOT_FOUND
 
-    unchanged_comment = Comment.objects.get(id=comment.id)
-    assert unchanged_comment.text == comment.text
+    comment.refresh_from_db()
+    assert comment.text == comment.text
 
 
 @pytest.mark.django_db

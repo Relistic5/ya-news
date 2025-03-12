@@ -96,11 +96,7 @@ def comment(author, news):
 @pytest.fixture
 def comment_form(author, news):
     """Создаем форму для комментария"""
-    return {
-        'text': 'Какой-то текст',
-        'author': author,
-        'news': news
-    }
+    return {'text': 'Какой-то текст'}
 
 
 @pytest.fixture

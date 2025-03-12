@@ -19,14 +19,13 @@ def test_pages_availability(client, url_fixture):
 
 
 @pytest.mark.parametrize(
-    'url_fixture', ('edit_url', 'delete_url'))
+    'url_fixture', [lf('edit_url'), lf('delete_url')])
 @pytest.mark.django_db
 def test_redirect_for_anonymous_client(client, request,
                                        url_fixture, login_url):
     """Редирект для анонимного пользователя"""
-    url = request.getfixturevalue(url_fixture)
-    redirect_url = f'{login_url}?next={url}'
-    response = client.get(url)
+    redirect_url = f'{login_url}?next={url_fixture}'
+    response = client.get(url_fixture)
     assert response.status_code == HTTPStatus.FOUND
     assert response.url == redirect_url
     assertRedirects(response, redirect_url)
@@ -44,7 +43,5 @@ def test_comment_permissions(
     """Доступ к редактированию и удалению комментариев
     в зависимости от роли пользователя.
     """
-    client = client_fixture
-    url = url_fixture
-    response = client.get(url)
+    response = client_fixture.get(url_fixture)
     assert response.status_code == expected_status
