@@ -88,9 +88,19 @@ def news():
 
 @pytest.fixture
 def comment(author, news):
-    """Создаем комментарий к новости"""
+    """Заранее созданный комментарий"""
     return Comment.objects.create(
         text='Тестовый комментарий', author=author, news=news)
+
+
+@pytest.fixture
+def comment_form(author, news):
+    """Создаем форму для комментария"""
+    return {
+        'text': 'Какой-то текст',
+        'author': author,
+        'news': news
+    }
 
 
 @pytest.fixture
